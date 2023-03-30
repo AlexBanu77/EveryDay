@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hello_world/screens/bmi_screen.dart';
 import 'package:hello_world/screens/intro_screen.dart';
+import 'package:hello_world/screens/image_screen.dart';
 
 void main() {
   runApp(GlobeApp());
@@ -15,9 +16,10 @@ class GlobeApp extends StatelessWidget {
         theme: ThemeData(primarySwatch: Colors.teal),
         routes: {
           '/': (context) => IntroScreen(),
-          '/bmi': (context) => BmiScreen()
+          '/bmi': (context) => BmiScreen(),
+          '/images': (context) => MyApp(),
         },
-        initialRoute: '/',
+        initialRoute: '/images',
         // home: IntroScreen()
     );
   }
