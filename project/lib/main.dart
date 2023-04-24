@@ -1,10 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:hello_world/screens/bmi_screen.dart';
-import 'package:hello_world/screens/intro_screen.dart';
-import 'package:hello_world/screens/image_screen.dart';
+import 'package:hello_world/shared/bmi_screen.dart';
+import 'package:hello_world/shared/intro_screen.dart';
 
 void main() {
-  runApp(GlobeApp());
+  runApp(const GlobeApp());
 }
 
 class GlobeApp extends StatelessWidget {
@@ -15,11 +14,10 @@ class GlobeApp extends StatelessWidget {
     return MaterialApp(
         theme: ThemeData(primarySwatch: Colors.teal),
         routes: {
-          '/': (context) => IntroScreen(),
-          '/bmi': (context) => BmiScreen(),
-          '/images': (context) => MyApp(),
+          '/': (context) => const IntroScreen(),
+          '/bmi': (context) => const BmiScreen(),
         },
-        initialRoute: '/images',
+        initialRoute: '/',
         // home: IntroScreen()
     );
   }

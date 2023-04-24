@@ -12,7 +12,7 @@ class IntroScreen extends StatelessWidget {
       drawer: MenuDrawer(),
       bottomNavigationBar: MenuBottom(),
       body: Container(
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
             image: DecorationImage(
           image: AssetImage('assets/background_image.jpg'),
           fit: BoxFit.cover,
@@ -20,11 +20,11 @@ class IntroScreen extends StatelessWidget {
         child: Center(
           child: Container(
             padding: EdgeInsets.all(15),
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               borderRadius: BorderRadius.all(Radius.circular(20)),
               color: Colors.white70,
             ),
-            child: Text(
+            child: const Text(
               'Surf through the upcoming events and save your spot!',
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 20, shadows: [

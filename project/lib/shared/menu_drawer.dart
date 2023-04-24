@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../screens/bmi_screen.dart';
-import '../screens/intro_screen.dart';
+import '../shared/bmi_screen.dart';
+import '../shared/intro_screen.dart';
 
 
 class MenuDrawer extends StatelessWidget {
