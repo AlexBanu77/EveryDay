@@ -9,6 +9,7 @@ export class EventsService {
     constructor(@InjectRepository(Event) private repo: Repository<Event>) {}
 
     create(body: CreateEventDto){
+        console.log("saved dis ", body);
         const event = this.repo.create(body);
         return this.repo.save(event);
     }
@@ -18,9 +19,8 @@ export class EventsService {
         return this.repo.findOne(id);
     }
 
-    find(date: Date) {
-        // @ts-ignore
-        return this.repo.find({date});
+    find() {
+        return this.repo.find();
     }
 
     async update(id: number, attrs: Partial<Event>) {

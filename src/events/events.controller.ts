@@ -10,7 +10,8 @@ export class EventsController {
     }
     @Post()
     createEvent(@Body() body: CreateEventDto) {
-        this.eventsService.create(body);
+        console.log("I dont want your body")
+        return this.eventsService.create(body);
     }
 
     @Get("/:id")
@@ -19,8 +20,8 @@ export class EventsController {
     }
 
     @Get()
-    findAll(@Query('date') date: Date){
-        return this.eventsService.find(date);
+    findAll(){
+        return this.eventsService.find();
     }
 
     @Delete('/:id')
