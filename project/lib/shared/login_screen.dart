@@ -9,10 +9,15 @@ import 'login_menu_button.dart';
 
 var client = http.Client();
 
-Future<bool> checkPass() async {
-  var response = await client.get(
-    'http://192.168.172.24:5001/events/');
-  return true;
+Future<bool> checkPass(username, password) async {
+  var response = await client.post(
+    'http://192.168.172.24:5001/users/', body:
+    {
+      "username": username,
+      "password": password
+    });
+  var decodedData = jsonDecode(response.body);
+  return decodedData;
 }
 
 class LoginScreen extends StatefulWidget {
@@ -72,21 +77,21 @@ class _MyCustomFormState extends State<LoginScreen> {
                     const SizedBox(height: 10),
                     TextField(
                       controller: passwordController,
-                      decoration: InputDecoration(
+                      decoration: const InputDecoration(
                           border: UnderlineInputBorder(),
                           labelText: 'Enter your password',
                           fillColor: Colors.white,
                           filled: true
                       ),
-                      style: TextStyle(color: Colors.black),
+                      style: const TextStyle(color: Colors.black),
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () {
                         // Respond to button press
-                        checkPass();
+                        checkPass(userController.text, passwordController.text);
                       },
-                      child: Text('Log in'),
+                      child: const Text('Log in'),
                     )
                   ]
               )
