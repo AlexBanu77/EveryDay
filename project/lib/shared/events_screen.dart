@@ -6,15 +6,28 @@ import 'package:http/http.dart' as http;
 
 var client = http.Client();
 
+// Future<dynamic> postEvent() async {
+//   var response = await client.post('http://192.168.2.105:5001/events/', body: {
+//     "date": "The time is now old man",
+//     "Organizer": "Same but different",
+//     "Location": "Peste tot unde ma duc"
+//   });
+//   var decodedData = jsonDecode(response.body);
+//   return decodedData;
+// }
 Future<dynamic> postEvent() async {
-  var response = await client.post('http://192.168.2.105:5001/events/', body: {
-    "date": "The time is now old man",
-    "Organizer": "Same but different",
-    "Location": "Peste tot unde ma duc"
-  });
+  var data = {
+    "date": DateTime.now().toIso8601String(), // Convert to Date object
+    "organizer": "Same but different",
+    "location": "Peste tot unde ma duc"
+  };
+  var response = await client.post('http://192.168.2.105:5001/events/',
+      body: jsonEncode(data), // Convert to JSON string
+      headers: {'Content-Type': 'application/json'}); // Set content type
   var decodedData = jsonDecode(response.body);
   return decodedData;
 }
+
 
 class DisplayEvents extends StatefulWidget {
   const DisplayEvents({Key key}) : super(key: key);
@@ -75,9 +88,10 @@ class _DisplayEventsState extends State<DisplayEvents> {
         child: FloatingActionButton(
           backgroundColor: Colors.green,
           child: const Icon(Icons.add),
-          onPressed: () {},
+          onPressed: postEvent,
         ),
       ),
     );
   }
 }
+
