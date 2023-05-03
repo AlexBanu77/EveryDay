@@ -21,8 +21,11 @@ class DisplayEvents extends StatefulWidget {
 class _DisplayEventsState extends State<DisplayEvents> {
   List<Event> events = [];
   Future<List<Event>> getAll() async {
-    events.clear();
     var response = await http.get('http://192.168.172.24:5001/events/');
+
+    if(response.statusCode==200){
+      events.clear();
+    }
     var decodedData = jsonDecode(response.body);
     for (var u in decodedData) {
       try{
@@ -35,6 +38,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
   }
   @override
   Widget build(BuildContext context) {
+    getAll();
     return Scaffold(
         appBar: AppBar(
           title: Text('Display Events'),

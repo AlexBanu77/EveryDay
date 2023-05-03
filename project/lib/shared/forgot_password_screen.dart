@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+
 class ForgotPasswordScreen extends StatefulWidget {
   @override
   _ForgotPasswordScreenState createState() => _ForgotPasswordScreenState();
@@ -86,3 +89,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 },
                 child: Text('Reset Password'),
               ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

@@ -1,118 +1,117 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+
+var client = http.Client();
+
+Future<bool> registerUser(username, password) async {
+  var response = await client.post(
+    'http://192.168.2.105:5001/users/',
+    body: {
+      "username": username,
+      "password": password
+    }
+  );
+  var decodedData = jsonDecode(response.body);
+  return decodedData;
+}
 
 class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({Key? key}) : super(key: key);
+
   @override
-  _RegisterScreenState createState() => _RegisterScreenState();
+  State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
+  final userController = TextEditingController();
+  final passwordController = TextEditingController();
+
   final _formKey = GlobalKey<FormState>();
-  String _username;
-  String _email;
-  String _password;
-  String _confirmPassword;
-  bool _showPassword = false;
-  bool _showConfirmPassword = false;
+
+  @override
+  void dispose() {
+    userController.dispose();
+    passwordController.dispose();
+    client.close();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Register'),
-      ),
-      body: Padding(
-        padding: EdgeInsets.all(16.0),
+      appBar: AppBar(title: const Center(child: Text('Registration')), automaticallyImplyLeading: false),
+      body: Container(
+        decoration: const BoxDecoration(
+          image: DecorationImage(
+            image: AssetImage('assets/background_image.jpg'),
+            fit: BoxFit.cover,
+          ),
+        ),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Username',
-                  icon: Icon(Icons.person),
-                ),
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter your username';
-                  }
-                  if (value.length < 3 || value.length > 20) {
-                    return 'Username must be between 3 and 20 characters';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _username = value.trim(),
-              ),
-              SizedBox(height: 16.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Email',
-                  icon: Icon(Icons.email),
-                ),
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter your email';
-                  }
-                  if (!RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$').hasMatch(value)) {
-                    return 'Please enter a valid email address';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _email = value.trim(),
-              ),
-              SizedBox(height: 16.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Password',
-                  icon: Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _showPassword ? Icons.visibility : Icons.visibility_off,
+          child: Center(
+            child: Container(
+              padding: const EdgeInsets.all(15),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: <Widget>[
+                  TextFormField(
+                    controller: userController,
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Enter your username',
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _showPassword = !_showPassword;
-                      });
+                    style: const TextStyle(color: Colors.black),
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your username';
+                      }
+                      return null;
                     },
                   ),
-                ),
-                obscureText: !_showPassword,
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please enter your password';
-                  }
-                  if (value.length < 8) {
-                    return 'Password must be at least 8 characters';
-                  }
-                  if (!RegExp(r'^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9]).{8,}$').hasMatch(value)) {
-                    return 'Password must contain at least one uppercase letter, one lowercase letter, and one number';
-                  }
-                  return null;
-                },
-                onSaved: (value) => _password = value.trim(),
-              ),
-              SizedBox(height: 16.0),
-              TextFormField(
-                decoration: InputDecoration(
-                  labelText: 'Confirm Password',
-                  icon: Icon(Icons.lock),
-                  suffixIcon: IconButton(
-                    icon: Icon(
-                      _showConfirmPassword ? Icons.visibility : Icons.visibility_off,
+                  const SizedBox(height: 10),
+                  TextFormField(
+                    controller: passwordController,
+                    decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Enter your password',
+                      fillColor: Colors.white,
+                      filled: true,
                     ),
-                    onPressed: () {
-                      setState(() {
-                        _showConfirmPassword = !_showConfirmPassword;
-                      });
+                    style: const TextStyle(color: Colors.black),
+                    obscureText: true,
+                    validator: (value) {
+                      if (value?.isEmpty ?? true) {
+                        return 'Please enter your password';
+                      }
+                      return null;
                     },
                   ),
-                ),
-                obscureText: !_showConfirmPassword,
-                validator: (value) {
-                  if (value.isEmpty) {
-                    return 'Please confirm your password';
-                  }
-                  if (value != _password) {
-                    return 'Passwords do not match';
-                  }
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() == true) {
+                        var result = await registerUser(userController.text, passwordController.text);
+                        if (result) {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration successful')));
+                          Navigator.pop(context);
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Registration failed')));
+                        }
+                      }
+                    },
+                    child: const Text('Register'),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}

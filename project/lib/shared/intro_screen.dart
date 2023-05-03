@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hello_world/shared/menu_bottom.dart';
 import 'package:hello_world/shared/menu_drawer.dart';
 
-class IntroScreen extends StatelessWidget {
+class IntroScreen extends StatelessWidget { 
   const IntroScreen({Key? key}) : super(key: key);
 
   @override

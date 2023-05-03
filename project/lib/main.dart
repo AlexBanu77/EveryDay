@@ -3,7 +3,7 @@ import 'package:hello_world/shared/bmi_screen.dart';
 import 'package:hello_world/shared/events_screen.dart';
 import 'package:hello_world/shared/intro_screen.dart';
 import 'package:hello_world/shared/login_screen.dart';
-
+import 'package:hello_world/shared/register_screen.dart';
 void main() {
   runApp(const GlobeApp());
 }
@@ -18,8 +18,13 @@ class GlobeApp extends StatelessWidget {
         routes: {
           '/login': (context) => const LoginScreen(),
           '/events': (context) => const DisplayEvents(),
+          // '/': (context) => HomePage(),
+          '/register': (context) => RegisterScreen(),
+
         },
-        initialRoute: '/events',
+        // initialRoute: '/events',
+        initialRoute: '/login',
+
         // home: IntroScreen()
     );
   }
