@@ -13,6 +13,10 @@ Future<dynamic> postEvent(body) async {
   return decodedData;
 }
 
+void removeEvent(index) {
+  client.delete('http://192.168.172.24:5001/events/$index');
+}
+
 class DisplayEvents extends StatefulWidget {
   const DisplayEvents({Key key}) : super(key: key);
   @override
@@ -29,7 +33,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
     var decodedData = jsonDecode(response.body);
     for (var u in decodedData) {
       try{
-        events.add(Event(u['date'], u['organizer'], u['location']));
+        events.add(Event(u['id'],u['date'], u['organizer'], u['location']));
       } catch (e) {
         print(e);
       }
@@ -59,8 +63,16 @@ class _DisplayEventsState extends State<DisplayEvents> {
                       itemCount: snapshot.data.length,
                       itemBuilder: (BuildContext context, index) =>
                           ListTile(
-                                title: Text(snapshot.data[index].organizer),
+                                title: Text('${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
                                 subtitle: Text(snapshot.data[index].location),
+                                trailing: IconButton(
+                                  icon: Icon(Icons.delete),
+                                  onPressed: () {
+                                    setState(() {
+                                    });
+                                    removeEvent(snapshot.data[index].id);
+                                  },
+                                ),
                                 onTap: (){
                                 },
                               ),
@@ -82,7 +94,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
               "location": "Peste tot unde ma duc"
             };
             setState(() {
-              events.add(Event(u['date'], u['organizer'], u['location']));
+
             });
             postEvent(u);
           },
