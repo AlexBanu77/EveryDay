@@ -4,14 +4,14 @@ import 'package:flutter/material.dart';
 import 'package:hello_world/shared/menu_bottom.dart';
 import 'package:hello_world/shared/menu_drawer.dart';
 import 'package:http/http.dart' as http;
-import 'login_menu_button.dart';
+import 'login_menu_bottom.dart';
 
 
 var client = http.Client();
 
 Future<bool> checkPass(username, password) async {
   var response = await client.post(
-    'http://192.168.2.105:5001/users/', body:
+    'http://192.168.172.24:5001/users/', body:
     {
       "username": username,
       "password": password
@@ -87,9 +87,11 @@ class _MyCustomFormState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
-                      onPressed: () {
+                      onPressed: () async {
                         // Respond to button press
-                        checkPass(userController.text, passwordController.text);
+                        if(await checkPass(userController.text, passwordController.text)){
+                          Navigator.pushNamed(context, '/events');
+                        }
                       },
                       child: const Text('Log in'),
                     )

@@ -48,6 +48,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
           title: Text('Display Events'),
           elevation: 0.0,
           backgroundColor: Colors.indigo[700],
+          automaticallyImplyLeading: false,
         ),
         body: FutureBuilder(
           future: getAll(),
