@@ -9,8 +9,8 @@ export class UsersService {
     constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
     create(body: any){
-        const event = this.repo.create(body);
-        return this.repo.save(event);
+        const user = this.repo.create(body);
+        return this.repo.save(user);
     }
 
     async getAuth(body: any){

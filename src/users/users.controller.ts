@@ -12,4 +12,10 @@ export class UsersController {
     getAuth(@Body() body: UserDto){
         return this.usersService.getAuth(body);
     }
+
+    @Post('/register')
+    createUser(@Body() body: UserDto){
+        this.usersService.create(body);
+        return true;
+    }
 }

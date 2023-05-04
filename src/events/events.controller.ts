@@ -10,7 +10,6 @@ export class EventsController {
     }
     @Post()
     createEvent(@Body() body: CreateEventDto) {
-        console.log("I dont want your body")
         return this.eventsService.create(body);
     }
 

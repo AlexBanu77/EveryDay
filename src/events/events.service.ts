@@ -9,14 +9,18 @@ export class EventsService {
     constructor(@InjectRepository(Event) private repo: Repository<Event>) {}
 
     create(body: CreateEventDto){
-        console.log("saved dis ", body);
         const event = this.repo.create(body);
         return this.repo.save(event);
     }
 
     findOne(id: number) {
         // @ts-ignore
-        return this.repo.findOne(id);
+        console.log(id)
+        return this.repo.findOne({
+            where: {
+                id: id,
+            },
+        });
     }
 
     find() {
@@ -37,6 +41,7 @@ export class EventsService {
         if (!event){
             throw new NotFoundException('event not found')
         }
+        console.log("removed at index ", id);
         return this.repo.remove(event);
     }
 }
