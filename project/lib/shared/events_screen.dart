@@ -1,4 +1,5 @@
 // @dart=2.9
+
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hello_world/shared/Event.dart';
@@ -7,8 +8,8 @@ import 'package:http/http.dart' as http;
 var client = http.Client();
 
 Future<dynamic> postEvent(body) async {
-  var response = await client.post(
-      'http://192.168.172.24:5001/events/', body: body);
+  var response =
+      await client.post('http://192.168.172.24:5001/events/', body: body);
   var decodedData = jsonDecode(response.body);
   return decodedData;
 }
@@ -19,34 +20,56 @@ void removeEvent(index) {
 
 class DisplayEvents extends StatefulWidget {
   const DisplayEvents({Key key}) : super(key: key);
+
   @override
-  State<DisplayEvents> createState() => _DisplayEventsState();
+  _DisplayEventsState createState() => _DisplayEventsState();
 }
-
-
 
 class _DisplayEventsState extends State<DisplayEvents> {
   List<Event> events = [];
   String filter = '';
+
+  final TextEditingController _searchController = TextEditingController();
+
   Future<List<Event>> getAll() async {
     var response = await http.get('http://192.168.172.24:5001/events/');
 
-    if(response.statusCode==200){
+    if (response.statusCode == 200) {
       events.clear();
     }
     var decodedData = jsonDecode(response.body);
     for (var u in decodedData) {
-      try{
-        events.add(Event(u['id'],u['date'], u['organizer'], u['location']));
+      try {
+        events.add(Event(u['id'], u['date'], u['organizer'], u['location']));
       } catch (e) {
         print(e);
       }
     }
     return events;
   }
+
+  List<Event> getFilteredEvents() {
+    if (filter.isEmpty) {
+      return events;
+    }
+    return events
+        .where((event) =>
+            event.location.toLowerCase().contains(filter.toLowerCase()))
+        .toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(() {
+      setState(() {
+        filter = _searchController.text;
+      });
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    getAll();
     return Scaffold(
       appBar: AppBar(
         title: Text('Display Events'),
@@ -70,62 +93,70 @@ class _DisplayEventsState extends State<DisplayEvents> {
           ),
         ],
       ),
-        body: FutureBuilder(
-          future: getAll(),
-          builder: (context, AsyncSnapshot<List<Event>> snapshot) {
-              if (snapshot.connectionState == ConnectionState.done) {
-                if(snapshot.hasError){
-                  return const Center(
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                labelText: 'Search by name',
+                prefixIcon: Icon(Icons.search),
+                border: OutlineInputBorder(),
+              ),
+            ),
+          ),
+          Expanded(
+            child: FutureBuilder(
+              future: getAll(),
+              builder: (context, AsyncSnapshot<List<Event>> snapshot) {
+                if (snapshot.connectionState == ConnectionState.done) {
+                  if (snapshot.hasError) {
+                    return const Center(
                       child: CircularProgressIndicator(color: Colors.red),
-                  );
+                    );
+                  }
+                  if (snapshot.hasData) {
+                    var filteredEvents = getFilteredEvents();
+                    return ListView.builder(
+                      itemCount: filteredEvents.length,
+                      itemBuilder: (BuildContext context, index) => ListTile(
+                        title: Text(
+                            '${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
+                        subtitle: Text(snapshot.data[index].location),
+                        trailing: IconButton(
+                          icon: Icon(Icons.delete),
+                          onPressed: () {
+                            setState(() {});
+                            removeEvent(snapshot.data[index].id);
+                          },
+                        ),
+                        onTap: () {},
+                      ),
+                    );
+                  }
                 }
-                if (snapshot.hasData) {
-                  var filteredEvents = snapshot.data
-                    .where((e) => e.location.contains(filter))
-                    .toList();
-                  return ListView.builder(
-                    itemCount: filteredEvents.length,
-                    itemBuilder: (BuildContext context, index) =>
-                          ListTile(
-                                title: Text('${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
-                                subtitle: Text(snapshot.data[index].location),
-                                trailing: IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () {
-                                    setState(() {
-                                    });
-                                    removeEvent(snapshot.data[index].id);
-                                  },
-                                ),
-                                onTap: (){
-                                },
-                              ),
-                  );
-                }
-              }
-              return const Center(
-                child: CircularProgressIndicator(),
-              );
-
-            },
-        ),
-        floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            var u =
-            {
-              "date": DateTime.now().toString(),
-              "organizer": "Same but different",
-              "location": "Peste tot unde ma duc"
-            };
-            setState(() {
-
-            });
-            postEvent(u);
-          },
-          backgroundColor: Colors.green,
-          child: const Icon(Icons.add),
-    )
-    );
+                return const Center(
+                  child: CircularProgressIndicator(),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          var u = {
+            "date": DateTime.now().toString(),
+            "organizer": "Same but different",
+            "location": "Peste tot unde ma duc"
+          };
+          setState(() {});
+          postEvent(u);
+        },
+        backgroundColor: Colors.green,
+        child: const Icon(Icons.add),
+      ));
   }
 }
 
@@ -173,3 +204,4 @@ class _FilterDialogState extends State<FilterDialog> {
     );
   }
 }
+
