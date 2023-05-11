@@ -32,6 +32,7 @@ class _MyCustomFormState extends State<RegisterScreen> {
   // current value of the TextField.
   final userController = TextEditingController();
   final passwordController = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -62,9 +63,11 @@ class _MyCustomFormState extends State<RegisterScreen> {
         child: Center(
           child: Container(
               padding: EdgeInsets.all(15),
-              child: Column(
+              child: Form(
+                key: _formKey,
+                child: Column(
                   children: <Widget>[
-                    TextField(
+                    TextFormField(
                       controller: userController,
                       decoration: const InputDecoration(
                           border: UnderlineInputBorder(),
@@ -72,10 +75,16 @@ class _MyCustomFormState extends State<RegisterScreen> {
                           fillColor: Colors.white,
                           filled: true
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
                       style: const TextStyle(color: Colors.black),
                     ),
                     const SizedBox(height: 10),
-                    TextField(
+                    TextFormField(
                       controller: passwordController,
                       decoration: const InputDecoration(
                           border: UnderlineInputBorder(),
@@ -83,24 +92,32 @@ class _MyCustomFormState extends State<RegisterScreen> {
                           fillColor: Colors.white,
                           filled: true
                       ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter some text';
+                        }
+                        return null;
+                      },
                       style: const TextStyle(color: Colors.black),
                     ),
                     const SizedBox(height: 10),
                     ElevatedButton(
                       onPressed: () async {
                         // Respond to button press
-                        if(await registerUser(userController.text, passwordController.text)){
-                          Navigator.pushNamed(context, '/events');
+                        if (_formKey.currentState!.validate()){
+                          if(await registerUser(userController.text, passwordController.text)){
+                            Navigator.pushNamed(context, '/events');
+                          }
                         }
-
                       },
                       child: const Text('Register'),
                     )
                   ]
               )
+            ),
           ),
         ),
-      ),
+      )
     );
   }
 }
