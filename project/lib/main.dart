@@ -19,7 +19,7 @@ class GlobeApp extends StatelessWidget {
           '/register': (context) => const RegisterScreen(),
         },
         // initialRoute: '/events',
-        initialRoute: '/login',
+        initialRoute: '/events',
 
         // home: IntroScreen()
     );

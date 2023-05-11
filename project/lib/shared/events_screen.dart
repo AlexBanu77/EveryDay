@@ -22,8 +22,12 @@ class DisplayEvents extends StatefulWidget {
   @override
   State<DisplayEvents> createState() => _DisplayEventsState();
 }
+
+
+
 class _DisplayEventsState extends State<DisplayEvents> {
   List<Event> events = [];
+  String filter = '';
   Future<List<Event>> getAll() async {
     var response = await http.get('http://192.168.172.24:5001/events/');
 
@@ -44,12 +48,28 @@ class _DisplayEventsState extends State<DisplayEvents> {
   Widget build(BuildContext context) {
     getAll();
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Display Events'),
-          elevation: 0.0,
-          backgroundColor: Colors.indigo[700],
-          automaticallyImplyLeading: false,
-        ),
+      appBar: AppBar(
+        title: Text('Display Events'),
+        elevation: 0.0,
+        backgroundColor: Colors.indigo[700],
+        automaticallyImplyLeading: false,
+        actions: [
+          IconButton(
+            icon: Icon(Icons.filter_list),
+            onPressed: () async {
+              var result = await showDialog(
+                context: context,
+                builder: (context) => FilterDialog(currentFilter: filter),
+              );
+              if (result != null) {
+                setState(() {
+                  filter = result;
+                });
+              }
+            },
+          ),
+        ],
+      ),
         body: FutureBuilder(
           future: getAll(),
           builder: (context, AsyncSnapshot<List<Event>> snapshot) {
@@ -60,9 +80,12 @@ class _DisplayEventsState extends State<DisplayEvents> {
                   );
                 }
                 if (snapshot.hasData) {
+                  var filteredEvents = snapshot.data
+                    .where((e) => e.location.contains(filter))
+                    .toList();
                   return ListView.builder(
-                      itemCount: snapshot.data.length,
-                      itemBuilder: (BuildContext context, index) =>
+                    itemCount: filteredEvents.length,
+                    itemBuilder: (BuildContext context, index) =>
                           ListTile(
                                 title: Text('${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
                                 subtitle: Text(snapshot.data[index].location),
@@ -102,6 +125,51 @@ class _DisplayEventsState extends State<DisplayEvents> {
           backgroundColor: Colors.green,
           child: const Icon(Icons.add),
     )
+    );
+  }
+}
+
+class FilterDialog extends StatefulWidget {
+  final String currentFilter;
+
+  const FilterDialog({Key key, this.currentFilter}) : super(key: key);
+
+  @override
+  _FilterDialogState createState() => _FilterDialogState();
+}
+
+class _FilterDialogState extends State<FilterDialog> {
+  String filter;
+
+  @override
+  void initState() {
+    super.initState();
+    filter = widget.currentFilter;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Filter by location'),
+      content: TextField(
+        decoration: InputDecoration(hintText: 'Enter location'),
+        onChanged: (value) {
+          setState(() {
+            filter = value;
+          });
+        },
+        controller: TextEditingController(text: filter),
+      ),
+      actions: [
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+          child: Text('Apply'),
+          onPressed: () => Navigator.of(context).pop(filter),
+        ),
+      ],
     );
   }
 }
