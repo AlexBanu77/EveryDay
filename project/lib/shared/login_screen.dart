@@ -161,17 +161,6 @@ class _LoginScreenState extends State<LoginScreen>
                           },
                         ),
                       ),
-                      ElevatedButton(
-                        onPressed: () async {
-                          // Respond to button press
-                          if (_formKey.currentState!.validate()){
-                            if(await checkPass(userController.text, passwordController.text)){
-                              Navigator.pushNamed(context, '/events');
-                            }
-                          }
-                        },
-                        child: const Text('Log in'),
-                      )
                     ]
                 )
             ),
