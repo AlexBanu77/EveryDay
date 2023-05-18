@@ -1,12 +1,15 @@
 import 'dart:convert';
-
+import 'bottom_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
-import 'login_menu_bottom.dart';
+// import 'login_menu_bottom.dart';
 
 var client = http.Client();
+
+
+
 
 Future<bool> checkPass(username, password) async {
   var response = await client.post('http://192.168.172.24:5001/users/',
@@ -28,6 +31,13 @@ class _LoginScreenState extends State<LoginScreen>
   final passwordController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _animation;
+  int currentIndex = 0;
+
+void onTabSelected(int index) {
+  setState(() {
+    currentIndex = index;
+  });
+}
 
   @override
   void initState() {
@@ -66,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen>
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      bottomNavigationBar: LoginMenuBottom(),
+      // bottomNavigationBar: LoginMenuBottom(),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -146,6 +156,10 @@ class _LoginScreenState extends State<LoginScreen>
             ),
           ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomMenu(
+        currentIndex: currentIndex,
+        onTabSelected: onTabSelected,
       ),
     );
   }
