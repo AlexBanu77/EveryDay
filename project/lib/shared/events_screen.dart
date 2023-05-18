@@ -1,5 +1,3 @@
-// @dart=2.9
-
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hello_world/shared/Event.dart';
@@ -131,7 +129,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
                             removeEvent(snapshot.data[index].id);
                           },
                         ),
-                        onTap: () {},
+                        onTap: () {Navigator.pushNamed(context, '/event_display');},
                       ),
                     );
                   }

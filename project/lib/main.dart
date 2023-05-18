@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hello_world/shared/event_display_screen.dart';
 import 'package:hello_world/shared/events_screen.dart';
 import 'package:hello_world/shared/login_screen.dart';
 import 'package:hello_world/shared/register_screen.dart';
@@ -15,8 +16,9 @@ class GlobeApp extends StatelessWidget {
         theme: ThemeData(primarySwatch: Colors.teal),
         routes: {
           '/login': (context) => const LoginScreen(),
-          '/events': (context) => const DisplayEvents(),
+          '/events': (context) => DisplayEvents(),
           '/register': (context) => const RegisterScreen(),
+          '/event_detail': (context) => EventDisplay(event: Event(date: DateTime(2023), organizer: '', location: 'location'))
           // '/register': (context) => const AuthScreen(),
         },
         initialRoute: '/register',
