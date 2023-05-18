@@ -1,12 +1,15 @@
 import 'dart:convert';
-
+import 'bottom_menu.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 
-import 'login_menu_bottom.dart';
+// import 'login_menu_bottom.dart';
 
 var client = http.Client();
+
+
+
 
 Future<bool> checkPass(username, password) async {
   var response = await client.post('http://192.168.172.24:5001/users/',
@@ -28,7 +31,13 @@ class _LoginScreenState extends State<LoginScreen>
   final passwordController = TextEditingController();
   late AnimationController _animationController;
   late Animation<double> _animation;
-  final _formKey = GlobalKey<FormState>();
+  int currentIndex = 0;
+
+void onTabSelected(int index) {
+  setState(() {
+    currentIndex = index;
+  });
+}
 
   @override
   void initState() {
@@ -48,11 +57,9 @@ class _LoginScreenState extends State<LoginScreen>
     super.dispose();
   }
 
-  Future<void> _onPressed(_formKey) async {
-    if (_formKey.currentState!.validate()){
-      if (await checkPass(userController.text, passwordController.text)) {
-        Navigator.pushNamed(context, '/events');
-      }
+  Future<void> _onPressed() async {
+    if (await checkPass(userController.text, passwordController.text)) {
+      Navigator.pushNamed(context, '/events');
     }
   }
 
@@ -69,7 +76,7 @@ class _LoginScreenState extends State<LoginScreen>
         centerTitle: true,
         automaticallyImplyLeading: false,
       ),
-      bottomNavigationBar: LoginMenuBottom(),
+      // bottomNavigationBar: LoginMenuBottom(),
       body: Container(
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -87,87 +94,73 @@ class _LoginScreenState extends State<LoginScreen>
             decoration: BoxDecoration(
               color: Colors.white.withOpacity(0.8),
               borderRadius: BorderRadius.circular(10),
-          ),
-            child: Form(
-                key: _formKey,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextFormField(
-                        controller: userController,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.person),
-                          labelText: 'Username',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                      SizedBox(height: 20),
-                      TextFormField(
-                        controller: passwordController,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          prefixIcon: Icon(Icons.lock),
-                          labelText: 'Password',
-                        ),
-                        validator: (value) {
-                          if (value == null || value.isEmpty) {
-                            return 'Please enter some text';
-                          }
-                          return null;
-                        },
-                        style: const TextStyle(color: Colors.black),
-                      ),
-                      const SizedBox(height: 20),
-                      GestureDetector(
-                        onTapDown: (_) {
-                          _animationController.forward();
-                        },
-                        onTapUp: (TapUpDetails details) async {
-                          _animationController.reverse();
-                          await _onPressed(_formKey);
-                        },
-                        onTapCancel: () {
-                          _animationController.reverse();
-                        },
-                        child: AnimatedBuilder(
-                          animation: _animation,
-                          builder: (context, child) {
-                            return Transform.scale(
-                              scale: _animation.value,
-                              child: Container(
-                                width: 150,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(50),
-                                  color: Colors.blue.shade800,
-                                ),
-                                child: Center(
-                                  child: Text(
-                                    'LOGIN',
-                                    style: GoogleFonts.poppins(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                    ]
-                )
             ),
-          )
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                TextField(
+                  controller: userController,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.person),
+                    labelText: 'Username',
+                  ),
+                ),
+                SizedBox(height: 20),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    prefixIcon: Icon(Icons.lock),
+                    labelText: 'Password',
+                  ),
+                ),
+                SizedBox(height: 20),
+                GestureDetector(
+                  onTapDown: (_) {
+                    _animationController.forward();
+                  },
+                  onTapUp: (TapUpDetails details) async {
+                    _animationController.reverse();
+                    await _onPressed();
+                  },
+                  onTapCancel: () {
+                    _animationController.reverse();
+                  },
+                  child: AnimatedBuilder(
+                    animation: _animation,
+                    builder: (context, child) {
+                      return Transform.scale(
+                        scale: _animation.value,
+                        child: Container(
+                          width: 150,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            borderRadius: BorderRadius.circular(50),
+                            color: Colors.blue.shade800,
+                          ),
+                          child: Center(
+                            child: Text(
+                              'LOGIN',
+                              style: GoogleFonts.poppins(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
+      ),
+      bottomNavigationBar: CustomBottomMenu(
+        currentIndex: currentIndex,
+        onTabSelected: onTabSelected,
       ),
     );
   }
 }
-
