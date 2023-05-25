@@ -1,7 +1,10 @@
+// @dart=2.9
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:hello_world/shared/Event.dart';
 import 'package:http/http.dart' as http;
+import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:geolocator/geolocator.dart';
 
 var client = http.Client();
 
@@ -16,6 +19,136 @@ void removeEvent(index) {
   client.delete('http://192.168.172.24:5001/events/$index');
 }
 
+class EventDetailsScreen extends StatefulWidget {
+  final Event event;
+
+  const EventDetailsScreen({Key key, this.event}) : super(key: key);
+
+  @override
+  _EventDetailsScreenState createState() => _EventDetailsScreenState();
+}
+
+class _EventDetailsScreenState extends State<EventDetailsScreen> {
+  GoogleMapController mapController;
+
+  void showLocationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Access Location'),
+          content: Text('Do you want to access your location?'),
+          actions: [
+            TextButton(
+              child: Text('No'),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: Text('Yes'),
+              onPressed: () {
+                // Request permission for location access
+                requestLocationAccess(context);
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void requestLocationAccess(BuildContext context) async {
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Extract latitude and longitude from the position
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            child: Container(
+              height: 300,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(latitude, longitude),
+                  zoom: 14.0,
+                ),
+                markers: {
+                  Marker(
+                    markerId: MarkerId('event'),
+                    position: LatLng(latitude, longitude),
+                  ),
+                },
+              ),
+            ),
+          );
+        },
+      );
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Location Access Denied'),
+            content: Text('Please grant permission to access your location.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Event Details'),
+      ),
+      body: Column(
+        children: [
+          ListTile(
+            title: Text('${widget.event.organizer} ${widget.event.id}'),
+            subtitle: Text(widget.event.location),
+          ),
+          Expanded(
+            child: GoogleMap(
+              initialCameraPosition: CameraPosition(
+                target: LatLng(widget.event.latitude, widget.event.longitude),
+                zoom: 14.0,
+              ),
+              markers: {
+                Marker(
+                  markerId: MarkerId(widget.event.id.toString()),
+                  position:
+                      LatLng(widget.event.latitude, widget.event.longitude),
+                ),
+              },
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          showLocationDialog(context);
+        },
+        child: Icon(Icons.location_on),
+      ),
+    );
+  }
+}
 class DisplayEvents extends StatefulWidget {
   const DisplayEvents({Key key}) : super(key: key);
 
@@ -28,6 +161,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
   String filter = '';
 
   final TextEditingController _searchController = TextEditingController();
+  BuildContext scaffoldContext;
 
   Future<List<Event>> getAll() async {
     var response = await http.get('http://192.168.172.24:5001/events/');
@@ -38,7 +172,14 @@ class _DisplayEventsState extends State<DisplayEvents> {
     var decodedData = jsonDecode(response.body);
     for (var u in decodedData) {
       try {
-        events.add(Event(u['id'], u['date'], u['organizer'], u['location']));
+        events.add(Event(
+          u['id'],
+          u['date'],
+          u['organizer'],
+          u['location'],
+          u['latitude'],
+          u['longitude'],
+        ));
       } catch (e) {
         print(e);
       }
@@ -54,6 +195,13 @@ class _DisplayEventsState extends State<DisplayEvents> {
         .where((event) =>
             event.location.toLowerCase().contains(filter.toLowerCase()))
         .toList();
+  }
+
+  Future<void> refreshEvents() async {
+    setState(() {
+      events.clear();
+    });
+    await getAll();
   }
 
   @override
@@ -91,70 +239,148 @@ class _DisplayEventsState extends State<DisplayEvents> {
           ),
         ],
       ),
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Search by name',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(),
+      body: Builder(
+        builder: (BuildContext context) {
+          scaffoldContext = context;
+          return Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    labelText: 'Search by name',
+                    prefixIcon: Icon(Icons.search),
+                    border: OutlineInputBorder(),
+                  ),
+                ),
               ),
-            ),
-          ),
-          Expanded(
-            child: FutureBuilder(
-              future: getAll(),
-              builder: (context, AsyncSnapshot<List<Event>> snapshot) {
-                if (snapshot.connectionState == ConnectionState.done) {
-                  if (snapshot.hasError) {
-                    return const Center(
-                      child: CircularProgressIndicator(color: Colors.red),
-                    );
-                  }
-                  if (snapshot.hasData) {
-                    var filteredEvents = getFilteredEvents();
-                    return ListView.builder(
-                      itemCount: filteredEvents.length,
-                      itemBuilder: (BuildContext context, index) => ListTile(
-                        title: Text(
-                            '${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
-                        subtitle: Text(snapshot.data[index].location),
-                        trailing: IconButton(
-                          icon: Icon(Icons.delete),
-                          onPressed: () {
-                            setState(() {});
-                            removeEvent(snapshot.data[index].id);
-                          },
-                        ),
-                        onTap: () {Navigator.pushNamed(context, '/event_display');},
-                      ),
-                    );
-                  }
-                }
-                return const Center(
-                  child: CircularProgressIndicator(),
-                );
-              },
-            ),
-          ),
-        ],
+              Expanded(
+                child: RefreshIndicator(
+                  onRefresh: refreshEvents,
+                  child: FutureBuilder(
+                    future: getAll(),
+                    builder: (context, AsyncSnapshot<List<Event>> snapshot) {
+                      if (snapshot.connectionState == ConnectionState.done) {
+                        if (snapshot.hasError) {
+                          return Center(
+                            child: Text(
+                              'Error: ${snapshot.error}',
+                              style: TextStyle(color: Colors.red),
+                            ),
+                          );
+                        }
+                        if (snapshot.hasData) {
+                          var filteredEvents = getFilteredEvents();
+                          return ListView.builder(
+                            itemCount: filteredEvents.length,
+                            itemBuilder: (BuildContext context, index) =>
+                                ListTile(
+                              title: Text(
+                                  '${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
+                              subtitle: Text(
+                                  snapshot.data[index].location),
+                              trailing: IconButton(
+                                icon: Icon(Icons.delete),
+                                onPressed: () async {
+                                  setState(() {});
+                                  await removeEvent(snapshot.data[index].id);
+                                  ScaffoldMessenger.of(scaffoldContext).showSnackBar(
+                                    SnackBar(
+                                      content: Text('Event deleted'),
+                                      duration: Duration(seconds: 2),
+                                    ),
+                                  );
+                                },
+                              ),
+                              onTap: () async {
+                                // Navigate to event details screen when an event is tapped
+                                await Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => EventDetailsScreen(
+                                      event: snapshot.data[index],
+                                    ),
+                                  ),
+                                );
+                                refreshEvents(); // Refresh the events list after returning from the details screen
+                              },
+                            ),
+                          );
+                        }
+                      }
+                      return Center(
+                        child: CircularProgressIndicator(),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          var u = {
-            "date": DateTime.now().toString(),
-            "organizer": "Same but different",
-            "location": "Peste tot unde ma duc"
-          };
-          setState(() {});
-          postEvent(u);
+  onPressed: () async {
+    // Request permission for location access
+    LocationPermission permission = await Geolocator.requestPermission();
+
+    if (permission == LocationPermission.whileInUse ||
+        permission == LocationPermission.always) {
+      // Retrieve the current position
+      Position position = await Geolocator.getCurrentPosition(
+        desiredAccuracy: LocationAccuracy.high,
+      );
+
+      // Extract latitude and longitude from the position
+      double latitude = position.latitude;
+      double longitude = position.longitude;
+
+      showDialog(
+        context: context, // Use the context parameter from builder
+        builder: (context) {
+          return Dialog(
+            child: Container(
+              height: 300,
+              child: GoogleMap(
+                initialCameraPosition: CameraPosition(
+                  target: LatLng(latitude, longitude),
+                  zoom: 14.0,
+                ),
+                markers: {
+                  Marker(
+                    markerId: MarkerId('event'),
+                    position: LatLng(latitude, longitude),
+                  ),
+                },
+              ),
+            ),
+          );
         },
-        backgroundColor: Colors.green,
-        child: const Icon(Icons.add),
-      ));
+      );
+    } else {
+      // Handle the case when the user denies location permission
+      showDialog(
+        context: context, // Use the context parameter from builder
+        builder: (context) {
+          return AlertDialog(
+            title: Text('Location Access Denied'),
+            content: Text('Please grant permission to access your location.'),
+            actions: [
+              TextButton(
+                child: Text('OK'),
+                onPressed: () => Navigator.of(context).pop(),
+              ),
+            ],
+          );
+        },
+      );
+    }
+  },
+  backgroundColor: Colors.green,
+  child: const Icon(Icons.add),
+),
+    );
   }
 }
 
@@ -202,4 +428,3 @@ class _FilterDialogState extends State<FilterDialog> {
     );
   }
 }
-

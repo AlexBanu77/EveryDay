@@ -21,7 +21,7 @@ class GlobeApp extends StatelessWidget {
           '/event_detail': (context) => EventDisplay(event: Event(date: DateTime(2023), organizer: '', location: 'location'))
           // '/register': (context) => const AuthScreen(),
         },
-        initialRoute: '/register',
+        initialRoute: '/events',
         // home: IntroScreen()
     );
   }

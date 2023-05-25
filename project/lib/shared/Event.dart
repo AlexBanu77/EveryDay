@@ -3,10 +3,15 @@ class Event {
   late String date;
   late String organizer;
   late String location;
-  Event(uid, udate, uorganizer, ulocation){
+  late double latitude; // for goooglemaps
+  late double longitude; // for googlemaps
+
+  Event(uid, udate, uorganizer, ulocation, ulatitude, ulongitude) {
     id = uid;
     date = udate;
     organizer = uorganizer;
     location = ulocation;
+    latitude = ulatitude;
+    longitude = ulongitude;
   }
 }

@@ -17,15 +17,15 @@ class CustomBottomMenu extends StatelessWidget {
       onTap: (index) {
         switch (index) {
           case 0:
-            Navigator.pushReplacementNamed(context, '/login'); // Navigate to '/login' screen
+            Navigator.pushReplacementNamed(context, '/login'); 
             break;
           case 1:
-            Navigator.pushReplacementNamed(context, '/register'); // Navigate to '/register' screen
+            Navigator.pushReplacementNamed(context, '/register'); 
             break;
         }
         onTabSelected(index);
       },
-      selectedItemColor: Colors.blue, // Set the color for the selected item
+      selectedItemColor: Colors.blue, // highlight color
       items: [
         BottomNavigationBarItem(
           icon: Icon(Icons.login),
