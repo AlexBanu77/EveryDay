@@ -8,14 +8,24 @@ import {User} from "./user.entity";
 export class UsersService {
     constructor(@InjectRepository(User) private repo: Repository<User>) {}
 
-    create(body: any){
-        const user = this.repo.create(body);
-        return this.repo.save(user);
+    async create(body: any){
+        try{
+            await this.find(body.username);
+            return false;
+        } catch (e) {
+            const user = this.repo.create(body);
+            await this.repo.save(user);
+            return true;
+        }
     }
 
     async getAuth(body: any){
-        const user: any = await this.find(body.username);
-        return user.password === body.password;
+        try {
+            const user: any = await this.find(body.username);
+            return user.password === body.password;
+        } catch (e) {
+            return false;
+        }
     }
 
     find(username: string) {
