@@ -10,7 +10,8 @@ export class UsersService {
 
     async create(body: any){
         try{
-            await this.find(body.username);
+            const found = await this.find(body.username);
+            if(!found) throw Error();
             return false;
         } catch (e) {
             const user = this.repo.create(body);
