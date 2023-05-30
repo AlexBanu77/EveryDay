@@ -222,20 +222,20 @@ class _DisplayEventsState extends State<DisplayEvents> {
         backgroundColor: Colors.indigo[700],
         automaticallyImplyLeading: false,
         actions: [
-          IconButton(
-            icon: Icon(Icons.filter_list),
-            onPressed: () async {
-              var result = await showDialog(
-                context: context,
-                builder: (context) => FilterDialog(currentFilter: filter),
-              );
-              if (result != null) {
-                setState(() {
-                  filter = result;
-                });
-              }
-            },
-          ),
+          // IconButton(
+          //   icon: Icon(Icons.filter_list),
+          //   onPressed: () async {
+          //     var result = await showDialog(
+          //       context: context,
+          //       builder: (context) => FilterDialog(currentFilter: filter),
+          //     );
+          //     if (result != null) {
+          //       setState(() {
+          //         filter = result;
+          //       });
+          //     }
+          //   },
+          // ),
         ],
       ),
       body: Builder(
