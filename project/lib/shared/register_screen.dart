@@ -106,7 +106,7 @@ class _RegisterScreenState extends State<RegisterScreen>
         builder: (BuildContext context) {
           return AlertDialog(
             title: Text('Registration Failed'),
-            content: Text('Failed to register. Please try again.'),
+            content: Text('User already exists!'),
             actions: <Widget>[
               TextButton(
                 onPressed: () {

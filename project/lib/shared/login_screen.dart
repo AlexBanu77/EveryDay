@@ -60,6 +60,24 @@ void onTabSelected(int index) {
   Future<void> _onPressed() async {
     if (await checkPass(userController.text, passwordController.text)) {
       Navigator.pushNamed(context, '/events');
+    } else {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('Login Failed'),
+            content: Text('Credentials not valid.'),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                },
+                child: Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 

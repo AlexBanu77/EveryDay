@@ -15,8 +15,8 @@ Future<dynamic> postEvent(body) async {
   return decodedData;
 }
 
-void removeEvent(index) {
-  client.delete('http://192.168.172.24:5001/events/$index');
+Future<void> removeEvent(index) async {
+   await client.delete('http://192.168.172.24:5001/events/$index');
 }
 
 class EventDetailsScreen extends StatefulWidget {
@@ -120,7 +120,7 @@ class _EventDetailsScreenState extends State<EventDetailsScreen> {
       body: Column(
         children: [
           ListTile(
-            title: Text('${widget.event.organizer} ${widget.event.id}'),
+            title: Text('${widget.event.organizer}'),
             subtitle: Text(widget.event.location),
           ),
           Expanded(
@@ -193,15 +193,14 @@ class _DisplayEventsState extends State<DisplayEvents> {
     }
     return events
         .where((event) =>
-            event.location.toLowerCase().contains(filter.toLowerCase()))
+            event.organizer.toLowerCase().contains(filter.toLowerCase()))
         .toList();
   }
 
   Future<void> refreshEvents() async {
-    setState(() {
-      events.clear();
+    setState(() async {
+      events = await getAll();
     });
-    await getAll();
   }
 
   @override
@@ -249,7 +248,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
-                    labelText: 'Search by name',
+                    labelText: 'Search by organizer',
                     prefixIcon: Icon(Icons.search),
                     border: OutlineInputBorder(),
                   ),
@@ -277,14 +276,15 @@ class _DisplayEventsState extends State<DisplayEvents> {
                             itemBuilder: (BuildContext context, index) =>
                                 ListTile(
                               title: Text(
-                                  '${snapshot.data[index].organizer} ${snapshot.data[index].id}'),
+                                  '${filteredEvents[index].organizer}'),
                               subtitle: Text(
-                                  snapshot.data[index].location),
+                                  filteredEvents[index].location),
                               trailing: IconButton(
                                 icon: Icon(Icons.delete),
                                 onPressed: () async {
-                                  setState(() {});
-                                  await removeEvent(snapshot.data[index].id);
+                                  refreshEvents();
+                                  await removeEvent(filteredEvents[index].id);
+                                  Navigator.pushNamed(context, '/events');
                                   ScaffoldMessenger.of(scaffoldContext).showSnackBar(
                                     SnackBar(
                                       content: Text('Event deleted'),
@@ -299,7 +299,7 @@ class _DisplayEventsState extends State<DisplayEvents> {
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => EventDetailsScreen(
-                                      event: snapshot.data[index],
+                                      event: filteredEvents[index],
                                     ),
                                   ),
                                 );
@@ -322,6 +322,12 @@ class _DisplayEventsState extends State<DisplayEvents> {
       ),
       floatingActionButton: FloatingActionButton(
   onPressed: () async {
+
+    var result = await showDialog(
+      context: context,
+      builder: (context) => EventDialog(),
+    );
+
     // Request permission for location access
     LocationPermission permission = await Geolocator.requestPermission();
 
@@ -394,12 +400,11 @@ class FilterDialog extends StatefulWidget {
 }
 
 class _FilterDialogState extends State<FilterDialog> {
-  String filter;
+  final filterController = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    filter = widget.currentFilter;
   }
 
   @override
@@ -408,12 +413,7 @@ class _FilterDialogState extends State<FilterDialog> {
       title: Text('Filter by location'),
       content: TextField(
         decoration: InputDecoration(hintText: 'Enter location'),
-        onChanged: (value) {
-          setState(() {
-            filter = value;
-          });
-        },
-        controller: TextEditingController(text: filter),
+        controller: filterController,
       ),
       actions: [
         TextButton(
@@ -422,7 +422,89 @@ class _FilterDialogState extends State<FilterDialog> {
         ),
         TextButton(
           child: Text('Apply'),
-          onPressed: () => Navigator.of(context).pop(filter),
+          onPressed: () => Navigator.of(context).pop(filterController.text),
+        ),
+      ],
+    );
+  }
+}
+
+
+class EventDialog extends StatefulWidget {
+
+  const EventDialog({Key key}) : super(key: key);
+
+  @override
+  _EventDialogState createState() => _EventDialogState();
+}
+
+class _EventDialogState extends State<EventDialog> {
+  final organizerController = TextEditingController();
+  final locationController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    organizerController.dispose();
+    locationController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onpressed() async {
+    var u =
+    {
+      "date": DateTime.now().toString(),
+      "organizer": organizerController.text,
+      "location": locationController.text
+    };
+    await postEvent(u);
+    Navigator.pushNamed(context, '/events');
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      title: Text('Add an event'),
+      content: Container(
+        padding: EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(10),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            TextField(
+              controller: organizerController,
+              decoration: InputDecoration(
+                labelText: 'Organizer',
+              ),
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: locationController,
+              decoration: InputDecoration(
+                labelText: 'Location',
+              ),
+            ),
+            SizedBox(height: 20)]
+        )
+      ),
+      actions: [
+        TextButton(
+          child: Text('Cancel'),
+          onPressed: () => Navigator.of(context).pop(),
+        ),
+        TextButton(
+          child: Text('Add'),
+          onPressed: () {
+            _onpressed();
+            Navigator.of(context).pop();
+          },
         ),
       ],
     );
